@@ -86,11 +86,10 @@
         <label for="id">Id del producto</label>
         <input type="number" id="id" name="id" />
     </div>
-    <br>
-    <input type="text" style="visibility: hidden;" name="method" value="search">
     <button type="submit">Buscar</button>
-</form><br>
-<br><form method="get" action="${pageContext.request.contextPath}/DatabaseServlet">
+    <input type="text" style="visibility: hidden;" name="method" value="search">
+</form>
+<form method="get" action="${pageContext.request.contextPath}/DatabaseServlet">
     <button type="submit">Volver</button>
 </form>
 <br><h1>TABLA DE PRODUCTOS</h1><br>
@@ -118,8 +117,30 @@
         <td><%=product.getCategory().getId()%></td>
         <td><%=product.getCategory().getName()%></td>
     </tr>
-    <%}%>
     </tbody>
-</table>
+</table><br>
+<br><form method="post" action="${pageContext.request.contextPath}/DatabaseServlet">
+    <div>
+        <label for="name">Nombre</label>
+        <input type="text" id="name" name="name" value="<%=product.getName()%>" />
+    </div>
+    <br>
+    <div>
+        <label for="price">Precio</label>
+        <input type="number" id="price" name="price" value="<%=product.getPrice()%>" />
+    </div>
+    <br>
+    <div>
+        <label for="date">Fecha de registro</label>
+        <input type="date" id="date" name="date" value="<%=product.getRegisterDate()%>" />
+    </div>
+    <br>
+
+    <button type="submit">Actualizar</button>
+    <input type="text" name="method" style="visibility: hidden;" value="update">
+    <input type="text" name="id" style="visibility: hidden;" value="<%=product.getId()%>">
+
+</form>
+<%}%>
 </body>
 </html>

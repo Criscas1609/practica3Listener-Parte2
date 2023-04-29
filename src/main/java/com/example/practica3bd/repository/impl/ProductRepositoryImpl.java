@@ -12,30 +12,32 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-public class RepositoryImpl implements Repository {
-    private Connection getConnection() throws SQLException {
-        return ConexionBD.getConnection();
-    }
+import static com.example.practica3bd.ConexionBD.getConnection;
+
+public class
+
+
+ProductRepositoryImpl implements Repository<Product> {
 
     private Connection conn;
 
 
-    public RepositoryImpl(Connection conn) {
+    public ProductRepositoryImpl(Connection conn) {
         this.conn = conn;
     }
 
     public List<Product> listar() throws SQLException {
-        List<Product> productos = new ArrayList<>();
+        List<Product> productList = new ArrayList<>();
         try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT p.*, c.nombre as " +
-                     "categoria FROM productos as p " +
-                     " inner join categorias as c ON (p.categoria_id = c.id) order by p.id ASC")) {
+             ResultSet rs = stmt.executeQuery("SELECT p.*,c.nombre as categoria_nombre from products as p" +
+                     " inner join category as c ON (p.categoria_id=c.id)" +
+                     " order by p.id ASC")) {
             while (rs.next()) {
             Product p = createProduct(rs);
-            productos.add(p);
+            productList.add(p);
         }
     }
-        return productos;
+        return productList;
     }
 
 
@@ -56,17 +58,17 @@ public class RepositoryImpl implements Repository {
     }
 
     public List<Product> list() throws SQLException {
-        List<Product> productoList = new ArrayList<>();
+        List<Product> productList = new ArrayList<>();
         try (Statement statement = getConnection().createStatement();
              ResultSet resultSet = statement.executeQuery("SELECT p.*,c.nombre as categoria_nombre from products as p inner join category as c ON (p.categoria_id=c.id)")) {
             while (resultSet.next()) {
                 Product producto = createProduct(resultSet);
-                productoList.add(producto);
+                productList.add(producto);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return productoList;
+        return productList;
     }
 
     public Product byId(Long id) {
@@ -93,7 +95,7 @@ public class RepositoryImpl implements Repository {
             preparedStatement.setString(1,product.getName());
             preparedStatement.setLong(2,product.getPrice().longValue());
             preparedStatement.setDate(3,Date.valueOf(product.getRegisterDate()));
-            validateCategory(preparedStatement,product);
+            preparedStatement.setLong(4,product.getCategory().getId());
             preparedStatement.executeUpdate();
         }catch (SQLException e) {
             e.printStackTrace();
@@ -102,71 +104,28 @@ public class RepositoryImpl implements Repository {
 
     @Override
     public void delete(Long valueId) {
+        System.out.printf(String.valueOf(valueId));
         try {
             PreparedStatement preparedStatement = getConnection()
                     .prepareStatement("DELETE FROM products WHERE id ='"+valueId+"'");
                 preparedStatement.executeUpdate();
-                System.out.println("Producto eliminado");
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
     public void update(Long id, Product product) {
-        try (PreparedStatement preparedStatement = getConnection().prepareStatement("UPDATE products SET nombre=? ,precio=?,fecha_registro=? where id=?")) {
+        try (PreparedStatement preparedStatement = getConnection().prepareStatement("UPDATE products SET nombre=? ,precio=?,fecha_registro=? where id='"+id+"'")) {
             preparedStatement.setString(1, product.getName());
             preparedStatement.setLong(2, product.getPrice().longValue());
             preparedStatement.setDate(3, Date.valueOf(product.getRegisterDate()));
-            preparedStatement.setLong(4,product.getId());
             preparedStatement.executeUpdate();
-            System.out.println("Producto actualizado");
-            System.out.println("----------" + product.toString() + "----------------");
         } catch (SQLException e){
             e.printStackTrace();
         }
 
     }
 
-    //Validación de la existencia de la nueva categoria
-    public boolean checkCategory(Long id) {
-        try (PreparedStatement preparedStatement = getConnection()
-                .prepareStatement("SELECT p.*,c.nombre as categoria_nombre from products as p inner join category as c ON (p.categoria_id=c.id) WHERE c.id=?")) {
-            preparedStatement.setLong(1, id);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                return true;
-            }else return false;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-    public Category createCategory(Long id) {
-        try (PreparedStatement preparedStatement=getConnection().prepareStatement("INSERT INTO category(id,nombre) VALUES (?,?)")){
-            Scanner lectura = new Scanner (System.in);
-            System.out.println("Ingrese el nombre de la nueva categoria: ");
-            String name = lectura.next();
-            preparedStatement.setLong(1,id);
-            preparedStatement.setString(2,name);
-            preparedStatement.executeUpdate();
-            return new Category(id,name);
-        }catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-    public void validateCategory(PreparedStatement preparedStatement,Product product) throws SQLException{
-        boolean a = checkCategory(product.getCategory().getId());
-        if(a){
-          preparedStatement.setLong(4, product.getCategory().getId());
-        }else{
-            Category category = createCategory(product.getCategory().getId());
-            preparedStatement.setLong(4,category.getId());
-            product.setCategory(category);
-        }
-        System.out.println(product.toString());
-        System.out.println("Producto agregado");
-    }
 
 
 

@@ -1,4 +1,4 @@
-package org.example.model;
+package com.example.practica3bd.model;
 
 import lombok.*;
 
